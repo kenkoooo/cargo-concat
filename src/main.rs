@@ -1,62 +1,24 @@
 use anyhow::Result;
-use cargo_metadata::{CargoOpt, Metadata, MetadataCommand};
-use std::fs::File;
-use std::io::Read;
-use std::path::PathBuf;
+use cargo_concat::concat_source;
+use clap::Clap;
+use std::fs::write;
 
-fn get_target_source_path(metadata: &Metadata, target: Option<&str>) -> Result<PathBuf> {
-    let mut targets = metadata
-        .packages
-        .iter()
-        .flat_map(|package| package.targets.iter())
-        .filter(|target| {
-            target.kind.contains(&"bin".to_string())
-                && target.crate_types.contains(&"bin".to_string())
-        });
+#[derive(Clap)]
+#[clap(version = "0.1", author = "kenkoooo <kenkou.n@gmail.com>")]
+struct Args {
+    #[clap(long, short, default_value = "Cargo.toml")]
+    cargo_toml: String,
 
-    match target {
-        Some(target) => targets
-            .find(|t| t.name.as_str() == target)
-            .map(|target| target.src_path.clone())
-            .ok_or_else(|| anyhow::anyhow!("target={} is not found.", target)),
-        None => {
-            let first = targets.next();
-            let second = targets.next();
-            match first {
-                Some(first) => {
-                    if second.is_some() {
-                        Err(anyhow::anyhow!(
-                            "The project has multiple targets. Please specify one."
-                        ))
-                    } else {
-                        Ok(first.src_path.clone())
-                    }
-                }
-                None => Err(anyhow::anyhow!(
-                    "The project has no target. Please create one or more."
-                )),
-            }
-        }
-    }
-}
+    #[clap(long, short, about = "target name")]
+    bin: Option<String>,
 
-fn read_file(path: &PathBuf) -> Result<String> {
-    let mut file = File::open(path)?;
-    let mut content = String::new();
-    file.read_to_string(&mut content)?;
-    Ok(content)
+    #[clap(long, short, about = "output path", default_value = "out.rs")]
+    output: String,
 }
 
 fn main() -> Result<()> {
-    let metadata = MetadataCommand::new()
-        .manifest_path("./Cargo.toml")
-        .features(CargoOpt::AllFeatures)
-        .exec()
-        .unwrap();
-    let source_path = get_target_source_path(&metadata, None)?;
-    let source_code = read_file(&source_path)?;
-    let syn::File { items, .. } = syn::parse_file(&source_code)?;
-    println!("{:#?}", items);
-
+    let args: Args = Args::parse();
+    let file_content = concat_source(&args.cargo_toml, args.bin.as_ref())?;
+    write(&args.output, file_content)?;
     Ok(())
 }

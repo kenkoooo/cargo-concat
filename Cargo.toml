@@ -1,6 +1,6 @@
 [package]
 name = "cargo-concat"
-version = "0.1.0"
+version = "0.2.0"
 license-file = "LICENSE"
 readme = "README.md"
 description = "Cancat"
@@ -14,3 +14,4 @@ syn = { version = "1.0.41", features = ["full", "extra-traits"] }
 quote = "1.0.7"
 log = "0.4.11"
 env_logger = "0.7.1"
+clap = "3.0.0-beta.2"

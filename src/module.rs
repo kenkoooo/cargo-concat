@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use std::fs::read_to_string;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use syn::{parse_file, File, Item};
 
 pub fn concat_module<P: AsRef<Path>>(mod_file_path: P, is_mod_file: bool) -> Result<File> {
