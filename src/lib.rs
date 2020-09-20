@@ -13,13 +13,18 @@ pub fn concat_source(cargo_toml: &str, target: Option<&String>) -> Result<String
         .features(CargoOpt::AllFeatures)
         .exec()?;
     let source_path = target::get_target_source_path(&metadata, target)?;
+    log::info!("Target found: {:?}", source_path);
+
     let source_code = read_to_string(&source_path)?;
     let source_file = syn::parse_file(&source_code)?;
 
-    let libs = extract::extract_modules(&source_file);
+    let libs = extract::extract_modules(&source_file)
+        .into_iter()
+        .map(|ident| ident.to_string())
+        .collect::<Vec<_>>();
+    log::info!("Extracted modules: {:?}", libs);
     let mut paths = vec![];
-    for lib in libs {
-        let lib_name = lib.to_string();
+    for lib_name in libs {
         if lib_name.as_str() == "std" || lib_name.as_str() == "crate" {
             continue;
         }

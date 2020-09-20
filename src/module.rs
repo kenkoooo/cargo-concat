@@ -1,9 +1,14 @@
 use anyhow::{Context, Result};
+use proc_macro2::TokenTree;
 use std::fs::read_to_string;
 use std::path::Path;
 use syn::{parse_file, File, Item};
 
-pub fn concat_module<P: AsRef<Path>>(mod_file_path: P, is_mod_file: bool) -> Result<File> {
+pub fn concat_module<P: AsRef<Path> + std::fmt::Debug>(
+    mod_file_path: P,
+    is_mod_file: bool,
+) -> Result<File> {
+    log::info!("Parsing {:?}", mod_file_path);
     let content = read_to_string(&mod_file_path)?;
     let mut file = parse_file(&content)?;
 
@@ -22,6 +27,18 @@ pub fn concat_module<P: AsRef<Path>>(mod_file_path: P, is_mod_file: bool) -> Res
         if let Item::Mod(item) = item {
             if item.semi.is_none() {
                 continue;
+            }
+            if let Some(file) = find_file_from_attr(&item.attrs) {
+                let mut path = mod_file_path.as_ref().to_path_buf();
+                assert!(path.pop(), "Invalid path operation.");
+                path.push(file);
+                log::info!("path={:?}", path);
+                if path.exists() && path.is_file() {
+                    item.semi = None;
+                    let File { items, .. } = concat_module(path, false)?;
+                    item.content = Some((syn::token::Brace::default(), items));
+                    continue;
+                }
             }
 
             let ident = item.ident.to_string();
@@ -58,4 +75,27 @@ pub fn concat_module<P: AsRef<Path>>(mod_file_path: P, is_mod_file: bool) -> Res
     }
 
     Ok(file)
+}
+
+fn find_file_from_attr(attrs: &[syn::Attribute]) -> Option<String> {
+    for attr in attrs {
+        if attr
+            .path
+            .segments
+            .iter()
+            .all(|seg| seg.ident.to_string().as_str() != "path")
+        {
+            continue;
+        }
+
+        let mut token = attr.tokens.clone().into_iter();
+        let first = token.next();
+        let second = token.next();
+        if let (Some(TokenTree::Punct(_)), Some(TokenTree::Literal(lit))) = (first, second) {
+            //FIXME
+            let lit = lit.to_string();
+            return Some(String::from(&lit[1..lit.len() - 1]));
+        }
+    }
+    None
 }

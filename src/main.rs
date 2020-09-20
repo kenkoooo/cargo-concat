@@ -17,6 +17,9 @@ struct Args {
 }
 
 fn main() -> Result<()> {
+    env_logger::Builder::new()
+        .filter(None, log::LevelFilter::Info)
+        .init();
     let args: Args = Args::parse();
     let file_content = concat_source(&args.cargo_toml, args.bin.as_ref())?;
     write(&args.output, file_content)?;
