@@ -1,6 +1,6 @@
 use anyhow::Result;
 use cargo_concat::concat_source;
-use clap::{Clap, Subcommand};
+use clap::Clap;
 use std::fs::write;
 
 #[derive(Clap)]
