@@ -13,6 +13,6 @@ cargo install cargo-concat
 In your Cargo project directory, you can hit the following command to generate a concatenated file.
 
 ```
-cargo-concat --bin main --output out.rs
+cargo concat --bin main --output out.rs
 ```
 
