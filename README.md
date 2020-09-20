@@ -1,5 +1,8 @@
 # cargo-concat
 
+![Crates.io](https://img.shields.io/crates/v/cargo-concat)
+![GitHub](https://img.shields.io/github/license/kenkoooo/cargo-concat)
+
 This tool allows you to put all the modules you use in the executable file into one file.
 
 # Install
