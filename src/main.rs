@@ -31,7 +31,6 @@ fn main() -> Result<()> {
         .filter(None, log::LevelFilter::Info)
         .init();
     let args: Args = Args::parse();
-
     match args.subcommand {
         SubCommand::Concat(args) => {
             let file_content = concat_source(&args.cargo_toml, args.bin.as_ref())?;
