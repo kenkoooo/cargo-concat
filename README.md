@@ -19,3 +19,8 @@ In your Cargo project directory, you can hit the following command to generate a
 cargo concat --bin main --output out.rs
 ```
 
+# Status
+- [x] Support crates with zero dependency
+- [ ] Support `use crate::...`
+- [ ] Support `extern crate ...`
+- [ ] Support crates with external dependencies
